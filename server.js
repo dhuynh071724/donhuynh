@@ -1,3 +1,8 @@
+#npm init -y
+#npm install express body-parser express-session
+
+
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
