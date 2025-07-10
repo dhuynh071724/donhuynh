@@ -1,0 +1,56 @@
+copype amd64 C:\WinPE_amd64
+
+stress-ng.exe (dành cho Windows)
+	•	CPU-Z (silent logging)
+	•	CrystalDiskInfo (command-line version)
+	•	MemTest86+ (chạy từ boot nếu cần)
+	•	PassMark (burnin test command-line)
+	•	HWINFO64.exe /r (xuất report)
+	•	ipconfig, ping, iperf3 (network test)
+
+Copy các file .exe / scripts vào thư mục sau:
+C:\WinPE_amd64\mount\Tools\
+C:\WinPE_amd64\mount\Windows\System32\startnet.cmd
+@echo off
+wpeinit
+echo Running hardware stress test...
+
+:: Log folder
+set LOGDIR=X:\logs
+mkdir %LOGDIR%
+
+:: CPU Stress (Giả định có stress-ng.exe)
+X:\Tools\stress-ng.exe --cpu 4 --timeout 60s > %LOGDIR%\cpu.txt
+
+:: RAM Test (giả định bạn có tool ramtest.exe)
+X:\Tools\ramtest.exe > %LOGDIR%\ram.txt
+
+:: Disk Test
+X:\Tools\diskcheck.exe /all /log %LOGDIR%\disk.txt
+
+:: Network test
+ping 8.8.8.8 -n 5 > %LOGDIR%\ping.txt
+
+echo Done. Logs saved to %LOGDIR%
+
+Dism /Mount-Image /ImageFile:"C:\WinPE_amd64\media\sources\boot.wim" /index:1 /MountDir:"C:\WinPE_amd64\mount"
+xcopy C:\YourTools\* C:\WinPE_amd64\mount\Tools\ /E /Y
+
+Dism /Unmount-Image /MountDir:"C:\WinPE_amd64\mount" /Commit
+
+MakeWinPEMedia /ISO C:\WinPE_amd64 C:\WinPE_amd64\WinPE_HardwareTest.iso
+
+MakeWinPEMedia /UFD C:\WinPE_amd64 E:
+
+SFTP_SERVER=sftp.example.com
+SFTP_PORT=22
+SFTP_USER=uploaduser
+SFTP_PASS=yourpassword
+SFTP_DIR=/upload/logs
+
+HTTP_POST_URL=https://yourserver.com/api/upload
+EMAIL_SMTP=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=testsender@gmail.com
+EMAIL_PASS=app_password
+EMAIL_TO=you@example.com
